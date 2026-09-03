@@ -27,6 +27,7 @@ from .razorpay_webhook import (
 
 from .db import Base, SessionLocal, engine
 from .incident_detector import analyze_incident
+from .payment_operations import insert_clean_scenario_window
 from .root_cause_engine import investigate_root_cause
 from .ai_investigator import investigate_with_ai
 from .remediation import build_remediation_analysis
@@ -40,6 +41,50 @@ from .telemetry import get_live_telemetry
 # ---------------------------------------------------------
 
 Base.metadata.create_all(bind=engine)
+
+
+# ---------------------------------------------------------
+# Demo data initialization
+# ---------------------------------------------------------
+
+def seed_demo_data_if_empty():
+    """
+    Seed one controlled gateway-degradation scenario when
+    the database is empty.
+
+    This is intended for the deployed buildathon demo.
+    Existing data is never replaced or deleted.
+    """
+
+    db = SessionLocal()
+
+    try:
+        event_count = db.query(PaymentEventDB).count()
+
+        if event_count == 0:
+            result = insert_clean_scenario_window(
+                db=db,
+                scenario_name="gateway_degradation",
+                baseline_count=40,
+                incident_count=100,
+                seed=42,
+            )
+
+            print(
+                "PayLens demo data seeded:",
+                result,
+            )
+        else:
+            print(
+                f"PayLens database already contains "
+                f"{event_count} events. Skipping demo seed."
+            )
+
+    finally:
+        db.close()
+
+
+seed_demo_data_if_empty()
 
 
 # ---------------------------------------------------------
