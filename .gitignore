@@ -42,3 +42,5 @@ build/
 # Generated files
 *.tmp
 *.temp
+# Local backup / legacy implementation
+old_backend/
